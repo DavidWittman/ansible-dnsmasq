@@ -21,12 +21,20 @@
     enabled: yes
   tags: dnsmasq
 
+- name: Check if firewalld is running
+  command: firewall-cmd --state
+  ignore_errors: yes
+  changed_when: false
+  register: firewalld_running
+  tags: dnsmasq
+
 - name: Apply DNS firewall rules
   firewalld:
     service: dns
     permanent: true
     state: enabled
     zone: public
+  when: firewalld_running|success
   with_items:
     - 'dns'
   notify:
@@ -39,6 +47,7 @@
     permanent: true
     state: enabled
     zone: public
+  when: firewalld_running|success
   with_items:
     - 'dhcp'
   when: dnsmasq_dhcp_ranges is defined
